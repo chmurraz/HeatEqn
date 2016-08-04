@@ -1,5 +1,6 @@
 #include "MiscFunctions.h"
 #include <stdio.h>
+#include <math.h>
 
 void InputPrompter(double *alpha, double *k, double *L, int *M, int *n)
 {
@@ -15,13 +16,19 @@ void InputPrompter(double *alpha, double *k, double *L, int *M, int *n)
 	scanf_s("%lf", alpha);
 }
 
-int MallocMatrix(double ** matrix, int n)
+int MallocMatrix(double ** matrixA, double ** matrixB, double *xAxis, double *yAxis, int n, double h, double L)
 {
 	int i, j;
+	double pi = 3.14159;
 	for (i = 0; i < n + 2; i++)
-		matrix[i] = (double *)malloc((n + 2) * sizeof(double));
+	{
+		matrixA[i] = (double *)malloc((n + 2) * sizeof(double));
+		matrixB[i] = (double *)malloc((n + 2) * sizeof(double));
+		xAxis[i] = h*i;
+		yAxis[i] = 50 * h*i * sin(2 * pi*h*i / L) + 15;
+	}
 
-	if (matrix == NULL)
+	if (matrixA == NULL || matrixB == NULL || xAxis == NULL)
 	{
 		puts("Memory allocation error");
 		return 0;
@@ -29,13 +36,17 @@ int MallocMatrix(double ** matrix, int n)
 	return 1;
 }
 
-void BuildTriDiag(double ** matrix, int n, double diag, double offDiag, int printFlag)
+void BuildTriDiag(double ** matrixA, double **matrixB, int n, double s, int printFlag)
 {
 	//	Fill the matrix with zeros
 	int i, j, count;
 	for (i = 0; i < n + 2; i++)
 		for (j = 0; j < n + 2; j++)
-			matrix[i][j] = 0;
+		{
+			matrixA[i][j] = 0;
+			matrixB[i][j] = 0;
+		}
+			
 
 	//	Fill the diagonal and off diagonals
 	for (i = 0; i < n + 2; i++)
@@ -43,9 +54,17 @@ void BuildTriDiag(double ** matrix, int n, double diag, double offDiag, int prin
 		for (j = 0; j < n + 2; j++)
 		{
 			if (i == j)
-				matrix[i][j] = diag;
+			{
+				matrixA[i][j] = 2+2*s;
+				matrixB[i][j] = 2-2*s;
+			}
+				
 			if ((j == (i - 1)) || (j == (i + 1)))
-				matrix[i][j] = offDiag;
+			{
+				matrixA[i][j] = -1*s;
+				matrixB[i][j] = s;
+			}
+				
 		}
 	}
 
@@ -57,10 +76,33 @@ void BuildTriDiag(double ** matrix, int n, double diag, double offDiag, int prin
 			for (j = 0; j < n + 2; j++)
 			{
 				count++;
-				printf("%lf ", matrix[i][j]);
+				printf("%lf", matrixA[i][j]);
+				if (count % (n + 2) == 0)
+					printf("\n");
+			}
+	}
+
+	if (printFlag == 1)
+	{
+		count = 0;
+		for (i = 0; i < n + 2; i++)
+			for (j = 0; j < n + 2; j++)
+			{
+				count++;
+				printf("%lf", matrixB[i][j]);
 				if (count % (n + 2) == 0)
 					printf("\n");
 			}
 	}
 }
 
+double** InvertMatrix(double ** matrixInput, double ** matrixOutput)
+{
+
+	return NULL;
+}
+
+double Determinant(double ** matrixInput)
+{
+	return 0.0;
+}
