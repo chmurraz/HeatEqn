@@ -3,36 +3,22 @@
 
 int main()
 {
-	int M, n;						//	Time and space mesh variables
-	int i, j, count = 0;			//	For loop variables
-	double k, L, alpha;				//	Time step
+	HeatData myData;
 
-	//	Prompt the user for inputs
-	InputPrompter(&alpha, &k, &L, &M, &n);
-	
-	//	Allocate memory for the matrix and x-coordinate data
-	double **matrixA = (double **)malloc((n + 2) * sizeof(double*));
-	double **matrixB = (double **)malloc((n + 2) * sizeof(double*));
-	double *xAxis = (double *)malloc((n + 2) * sizeof(double));
-	double *yAxis = (double *)malloc((n + 2) * sizeof(double));
+	puts("I have not currently implemented the linear algebra routines.");
+	puts("I have functions declared to computer minors, cofactors and determinants of the nxn matrix but they are not yet implemented.");
+	puts("More work is needed before this code really does anything beyond prompt for inputs.\n");
 
-	//	Now use the user inputs to create the matrix
-	double h = L / (n + 1);
-	double s = k*alpha / (pow(h, 2));
+	//	Prompt the user for inputs and allocate memory for matrices
+	InputPrompter(&myData);
 
 	//	Allocate the matrix and x-axis values
-	int memoryAllocatedFlag = MallocMatrix(matrixA, matrixB, xAxis, yAxis, n, h, L);
+	int memoryAllocatedFlag = MallocMatrix(&myData);
 	
 	//	Build the matrices
-	BuildTriDiag(matrixA, matrixB, n, s, 1);
+	BuildTriDiag(&myData);
 
-
-
-			
-
-	free(matrixA);
-	free(matrixB);
-	free(xAxis);
-	free(yAxis);
+	//	Clean up the garbage
+	GarbageCollect(&myData);
 	return 0;
 }
