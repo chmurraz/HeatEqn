@@ -19,6 +19,6 @@ int MallocMatrix(HeatData *myData);
 double** InvertMatrix(double** inputMatrix);
 double** MatrixOfMinors(double** inputMatrix, int n);
 double** MatrixOfCofactors(double** inputMatrix, int n);
-double Determinant(double** inputMatrix);
+double Determinant(double** inputMatrix, int n);
 void GarbageCollect(HeatData *myData);
 #endif
