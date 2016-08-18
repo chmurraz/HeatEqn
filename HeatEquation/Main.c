@@ -22,6 +22,6 @@ int main()
 	//Determinant(&myData.matrixA, myData.n);
 
 	//	Clean up the garbage
-	GarbageCollect(&myData);
+	GarbageCollect(myData);
 	return 0;
 }
