@@ -1,15 +1,25 @@
 #ifndef MATRIXFUNCTIONS_H
 #define MATRIXFUNCTIONS_H
 
+#include <stdio.h>
+#include <math.h>
+#define PI 3.14159265358979323846
+
 typedef struct
 {
 	int n;
-	double **rows;
-	double *cols;
+	long double **rows;
+	long double *cols;
 } Matrix;
 
-Matrix* MatrixBuilder(int n);
+Matrix* MatrixAlloc(int n);
 void MatrixFree(Matrix *m);
-void BuildTriDiag(Matrix *m, double inferior, double main, double superior);
+void BuildTriDiag(Matrix *m, long double inferior, long double main, long double superior);
+void PrintMatrix(Matrix *m);
+long double Determinant(Matrix *m, int n);
+void Invert(Matrix *m, Matrix *T, int n);
+long double Theta(Matrix *m, int n);
+long double Phi(Matrix *m, int n);
+void MatrixProduct(Matrix *a, Matrix *b, Matrix *T);
 
 #endif

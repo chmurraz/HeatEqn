@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "MiscFunctions.h"
 
 int main()
@@ -13,18 +14,59 @@ int main()
 	InputPrompter(&myData);
 
 	//	Build the tridiagonal matrix
-	double s = myData.s;
+	long double s = myData.s;
 	BuildTriDiag(myData.A, -1 * s, 2 + 2*s, -s);
 	BuildTriDiag(myData.B, s, 2 - 2 * s, s);
 
-	//	Allocate the matrix and x-axis values
-	//int memoryAllocatedFlag = MallocMatrix(&myData);
+	//	Print stuff
+	//if (myData.printFlag == 1)
+	//{
+	//	PrintMatrix(myData.A);
+	//	printf("\n");
+	//	PrintMatrix(myData.B);
+	//}
 	
-	//	Build the matrices
-	//BuildTriDiag(&myData);
-
 	//	Calculate the determinant of the tridiagonal matrix
-	//Determinant(&myData.matrixA, myData.n);
+	//long double det = Determinant(myData.A,myData.A->n);
+
+	//	Calculate the inverse of the matrix A
+	Invert(myData.A, myData.Ainv, myData.A->n);
+
+	//	Calculate the product of Ainv and B
+	MatrixProduct(myData.Ainv, myData.B, myData.AinvB);
+
+	//printf("\n");
+	//PrintMatrix(myData.Ainv);
+
+	//printf("\n");
+	//PrintMatrix(myData.AinvB);
+
+	//	Iteratively multiply the temp condition by the matrix product
+
+	//	Write temp data to a file
+	FILE *pFile;
+
+	pFile = fopen("test.txt", "w");
+
+	if (pFile != NULL)
+	{
+		for (int i = 0; i < myData.n + 2; i++)
+		{
+			fprintf(pFile, "%lf", myData.xAxis[i]);
+			if (i < myData.n + 1)
+				fprintf(pFile, ", ");
+		}
+
+		fprintf(pFile, "\n");
+
+		for (int i = 0; i < myData.n + 2; i++)
+		{
+			fprintf(pFile, "%lf", myData.yAxisTempData[i]);
+			if (i < myData.n + 1)
+				fprintf(pFile, ", ");
+		}
+		fclose(pFile);
+	}
 
 	//	Clean up the garbage
 	GarbageCollect(&myData);

@@ -6,20 +6,21 @@
 typedef struct
 {
 	int M, n;					//	Time and space steps
-	double k, L, alpha;			//	Heat conduction parameters
-	double h, s;				//	Derived parameters
+	long double k, L, alpha;			//	Heat conduction parameters
+	long double h, s;				//	Derived parameters
 	Matrix *A;					//	This is the 2I + sB matrix
+	Matrix *Ainv;				//	This is the inverse of A
 	Matrix *B;					//	This is the 2I - sB matrix
-	double *xAxis;
-	double *yAxisTempData;
+	Matrix *AinvB;				//	This is the product of Ainv and B
+	long double *xAxis;
+	long double *yAxisTempData;
 	int printFlag;
 } HeatData;
 
 void InputPrompter(HeatData *myData);
-//int MallocMatrix(HeatData *myData);
-//double** InvertMatrix(double** inputMatrix);
-//double** MatrixOfMinors(double** inputMatrix, int n);
-//double** MatrixOfCofactors(double** inputMatrix, int n);
-//double Determinant(double** inputMatrix, int n);
+//long double** InvertMatrix(long double** inputMatrix);
+//long double** MatrixOfMinors(long double** inputMatrix, int n);
+//long double** MatrixOfCofactors(long double** inputMatrix, int n);
+//long double Determinant(long double** inputMatrix, int n);
 void GarbageCollect(HeatData *myData);
 #endif

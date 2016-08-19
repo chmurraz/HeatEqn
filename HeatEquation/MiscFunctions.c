@@ -1,6 +1,5 @@
 #include "MiscFunctions.h"
-#include <stdio.h>
-#include <math.h>
+
 
 void InputPrompter(HeatData *myData)
 {
@@ -18,25 +17,34 @@ void InputPrompter(HeatData *myData)
 	*/
 
 	myData->M = 5;
-	myData->n = 3;
+	myData->n = 10;
+	myData->L = 5;
 	myData->k = 0.1;
-	myData->alpha = 0.001;
+	myData->alpha = 0.1;
 
 	//	Now use the user inputs to create the derived parameters
+	//	NOTE:  n tracks the number of internal mesh points (not including x0 and xn)
+	//	so the value of h is calculated on (n+1) and not n or (n+2)
 	myData->h = myData->L / (myData->n + 1);
 	myData->s = myData->k*myData->alpha / (pow(myData->h, 2));
 
-	//	Allocate memory for the dynamic variables
-	myData->A = MatrixBuilder(myData->n);
-	myData->B = MatrixBuilder(myData->n);
-	myData->xAxis = (double *)malloc((myData->n + 1) * sizeof(double));
-	myData->yAxisTempData = (double *)malloc((myData->n + 1) * sizeof(double));
+	//	Allocate memory for the dynamic variables.
+	//	NOTE:  If there are n internal mesh points, then there are a system of
+	//	(n+2) equations, requring an (n+2) matrix.
+	myData->A = MatrixAlloc(myData->n+2);
+	myData->Ainv = MatrixAlloc(myData->n + 2);
+	myData->B = MatrixAlloc(myData->n+2);
+	myData->AinvB = MatrixAlloc(myData->n + 2);
+	myData->xAxis = (long double *)malloc((myData->n + 2) * sizeof(long double));
+	myData->yAxisTempData = (long double *)malloc((myData->n + 2) * sizeof(long double));
 
-	//	Allocate memory for the dynamic variables
-	myData->A = MatrixBuilder(myData->n);
-	myData->B = MatrixBuilder(myData->n);
-	myData->xAxis = (double *)malloc((myData->n + 1) * sizeof(double));
-	myData->yAxisTempData = (double *)malloc((myData->n + 1) * sizeof(double));
+	//	Populate the x- and y-axis data
+	for (int i = 0; i < myData->n + 2; i++)
+	{
+		long double x = i*myData->h;
+		myData->xAxis[i] = x;
+		myData->yAxisTempData[i] = 50 * x*sin(2 * PI*x / myData->L) + 15;
+	}
 
 
 	//	Set matrix print flag to 1 (true) by default
@@ -45,43 +53,23 @@ void InputPrompter(HeatData *myData)
 
 /*
 
-int MallocMatrix(HeatData *myData)
-{
-	int i, j;
-	double pi = 3.14159;
-	for (i = 0; i < myData->n + 1; i++)
-	{
-		myData->matrixA[i] = (double *)malloc((myData->n + 1) * sizeof(double));
-		myData->matrixB[i] = (double *)malloc((myData->n + 1) * sizeof(double));
-		myData->xAxis[i] = myData->h*i;
-		myData->yAxisTempData[i] = 50 * myData->h*i * sin(2 * pi*myData->h*i / myData->L) + 15;
-	}
-
-	if (myData->matrixA == NULL || myData->matrixB == NULL || myData->xAxis == NULL || myData->yAxisTempData == NULL)
-	{
-		puts("Memory allocation error");
-		return 0;
-	}
-	return 1;
-}
-
-double** InvertMatrix(double** inputMatrix)
+long double** InvertMatrix(long double** inputMatrix)
 {
 
 	return NULL;
 }
 
-double ** MatrixOfMinors(double** inputMatrix, int n)
+long double ** MatrixOfMinors(long double** inputMatrix, int n)
 {
 	return NULL;
 }
 
-double ** MatrixOfCofactors(double ** inputMatrix, int n)
+long double ** MatrixOfCofactors(long double ** inputMatrix, int n)
 {
 	return NULL;
 }
 
-double Determinant(double** inputMatrix, int n)
+long double Determinant(long double** inputMatrix, int n)
 {
 	int i,j,k;
 
@@ -135,11 +123,11 @@ double Determinant(double** inputMatrix, int n)
 
 
 	//	Allocate memory for pointer variables to store the cofactor and minor matrices for the input matrix
-	double **minor = (double **)malloc((n + 1) * sizeof(double*));
-	double *cofactor = (double **)malloc(n * sizeof(double));
+	long double **minor = (long double **)malloc((n + 1) * sizeof(long double*));
+	long double *cofactor = (long double **)malloc(n * sizeof(long double));
 	for (i = 0; i <= n+1; i++)
 	{
-		minor[i] = (double **)malloc(n * sizeof(double));
+		minor[i] = (long double **)malloc(n * sizeof(long double));
 	}
 
 	//	Loop through and initialize the cofactor and matrix minors
@@ -184,6 +172,7 @@ double Determinant(double** inputMatrix, int n)
 void GarbageCollect(HeatData *myData)
 {
 	MatrixFree(myData->A);
+	MatrixFree(myData->Ainv);
 	MatrixFree(myData->B);
 	free(myData->xAxis);
 	free(myData->yAxisTempData);
