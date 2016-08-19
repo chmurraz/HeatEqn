@@ -3,6 +3,14 @@
 
 typedef struct
 {
+	int n_rows;
+	int n_cols;
+	double **rows;
+	double *data;
+} Matrix;
+
+typedef struct
+{
 	int M, n;					//	Time and space steps
 	double k, L, alpha;			//	Heat conduction parameters
 	double h, s;				//	Derived parameters
