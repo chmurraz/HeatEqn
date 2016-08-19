@@ -14,8 +14,8 @@ int main()
 
 	//	Build the tridiagonal matrix
 	double s = myData.s;
-	BuildTriDiag(&myData.A, -1 * s, 2 + 2*s, -s);
-	BuildTriDiag(&myData.B, s, 2 - 2 * s, s);
+	BuildTriDiag(myData.A, -1 * s, 2 + 2*s, -s);
+	BuildTriDiag(myData.B, s, 2 - 2 * s, s);
 
 	//	Allocate the matrix and x-axis values
 	//int memoryAllocatedFlag = MallocMatrix(&myData);

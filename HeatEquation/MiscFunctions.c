@@ -4,6 +4,7 @@
 
 void InputPrompter(HeatData *myData)
 {
+	/*
 	printf_s("Enter 'M' the number of time steps\n");
 	scanf_s("%d", &(myData->M));
 	printf("Enter 'n' the number of internal spacial mesh points.\nNote, the code will use (n+2) mesh points.\nThis includes the n internal mesh points and two additional boundary points: x0 and xn.\n");
@@ -14,6 +15,12 @@ void InputPrompter(HeatData *myData)
 	scanf_s("%lf", &(myData->L));
 	printf("Enter 'alpha' the thermal diffusivity.");
 	scanf_s("%lf", &(myData->alpha));
+	*/
+
+	myData->M = 5;
+	myData->n = 3;
+	myData->k = 0.1;
+	myData->alpha = 0.001;
 
 	//	Now use the user inputs to create the derived parameters
 	myData->h = myData->L / (myData->n + 1);
@@ -24,6 +31,13 @@ void InputPrompter(HeatData *myData)
 	myData->B = MatrixBuilder(myData->n);
 	myData->xAxis = (double *)malloc((myData->n + 1) * sizeof(double));
 	myData->yAxisTempData = (double *)malloc((myData->n + 1) * sizeof(double));
+
+	//	Allocate memory for the dynamic variables
+	myData->A = MatrixBuilder(myData->n);
+	myData->B = MatrixBuilder(myData->n);
+	myData->xAxis = (double *)malloc((myData->n + 1) * sizeof(double));
+	myData->yAxisTempData = (double *)malloc((myData->n + 1) * sizeof(double));
+
 
 	//	Set matrix print flag to 1 (true) by default
 	myData->printFlag = 1;
