@@ -19,9 +19,11 @@ int main()
 	BuildTriDiag(&myData);
 
 	//	Calculate the determinant of the tridiagonal matrix
-	//Determinant(&myData.matrixA, myData.n);
+	//	Adjust the 'n' parameter to be n+1 (and not n+2) to avoid array mismatch
+	double det = Determinant(&myData.matrixA, myData.n+1);
 
 	//	Clean up the garbage
 	GarbageCollect(myData);
+
 	return 0;
 }
