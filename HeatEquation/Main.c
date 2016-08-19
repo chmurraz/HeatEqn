@@ -12,16 +12,21 @@ int main()
 	//	Prompt the user for inputs and allocate memory for matrices
 	InputPrompter(&myData);
 
+	//	Build the tridiagonal matrix
+	double s = myData.s;
+	BuildTriDiag(&myData.A, -1 * s, 2 + 2*s, -s);
+	BuildTriDiag(&myData.B, s, 2 - 2 * s, s);
+
 	//	Allocate the matrix and x-axis values
-	int memoryAllocatedFlag = MallocMatrix(&myData);
+	//int memoryAllocatedFlag = MallocMatrix(&myData);
 	
 	//	Build the matrices
-	BuildTriDiag(&myData);
+	//BuildTriDiag(&myData);
 
 	//	Calculate the determinant of the tridiagonal matrix
 	//Determinant(&myData.matrixA, myData.n);
 
 	//	Clean up the garbage
-	GarbageCollect(myData);
+	GarbageCollect(&myData);
 	return 0;
 }

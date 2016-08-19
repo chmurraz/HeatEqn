@@ -127,9 +127,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.c" />
+    <ClCompile Include="MatrixFunctions.c" />
     <ClCompile Include="MiscFunctions.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MatrixFunctions.h" />
     <ClInclude Include="MiscFunctions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

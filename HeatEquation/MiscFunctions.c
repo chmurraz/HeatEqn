@@ -20,14 +20,16 @@ void InputPrompter(HeatData *myData)
 	myData->s = myData->k*myData->alpha / (pow(myData->h, 2));
 
 	//	Allocate memory for the dynamic variables
-	myData->matrixA = (double **)malloc((myData->n + 1) * sizeof(double*));
-	myData->matrixB = (double **)malloc((myData->n + 1) * sizeof(double*));
+	myData->A = MatrixBuilder(myData->n);
+	myData->B = MatrixBuilder(myData->n);
 	myData->xAxis = (double *)malloc((myData->n + 1) * sizeof(double));
 	myData->yAxisTempData = (double *)malloc((myData->n + 1) * sizeof(double));
 
 	//	Set matrix print flag to 1 (true) by default
 	myData->printFlag = 1;
 }
+
+/*
 
 int MallocMatrix(HeatData *myData)
 {
@@ -47,62 +49,6 @@ int MallocMatrix(HeatData *myData)
 		return 0;
 	}
 	return 1;
-}
-
-void BuildTriDiag(HeatData *myData)
-{
-	//	Fill the matrix with zeros
-	int i, j, count;
-	for (i = 0; i < myData->n + 1; i++)
-		for (j = 0; j < myData->n + 1; j++)
-		{
-			myData->matrixA[i][j] = 0;
-			myData->matrixB[i][j] = 0;
-		}
-			
-
-	//	Fill the diagonal and off diagonals
-	for (i = 0; i < myData->n + 1; i++)
-	{
-		for (j = 0; j < myData->n + 1; j++)
-		{
-			if (i == j)
-			{
-				myData->matrixA[i][j] = 2+2 * myData->s;
-				myData->matrixB[i][j] = 2-2 * myData->s;
-			}
-				
-			if ((j == (i - 1)) || (j == (i + 1)))
-			{
-				myData->matrixA[i][j] = -1 * myData->s;
-				myData->matrixB[i][j] = myData->s;
-			}
-				
-		}
-	}
-
-	//	Print the contents of the matrix to the console if flag == 1
-	if (myData->printFlag == 1)
-	{
-		count = 0;
-		for (i = 0; i < myData->n + 1; i++)
-			for (j = 0; j < myData->n + 1; j++)
-			{
-				count++;
-				printf("%lf", myData->matrixA[i][j]);
-				if (count % (myData->n + 1) == 0)
-					printf("\n");
-			}
-		count = 0;
-		for (i = 0; i < myData->n + 1; i++)
-			for (j = 0; j < myData->n + 1; j++)
-			{
-				count++;
-				printf("%lf", myData->matrixB[i][j]);
-				if (count % (myData->n + 1) == 0)
-					printf("\n");
-			}
-	}
 }
 
 double** InvertMatrix(double** inputMatrix)
@@ -219,16 +165,12 @@ double Determinant(double** inputMatrix, int n)
 	return 0.0;
 }
 
-void GarbageCollect(HeatData myData)
+*/
+
+void GarbageCollect(HeatData *myData)
 {
-	int i;
-	for (i = 0; i < myData.n + 1; i++)
-	{
-		free(myData.matrixA[i]);
-		free(myData.matrixB[i]);
-	}
-	free(myData.matrixA);
-	free(myData.matrixB);
-	free(myData.xAxis);
-	free(myData.yAxisTempData);
+	MatrixFree(myData->A);
+	MatrixFree(myData->B);
+	free(myData->xAxis);
+	free(myData->yAxisTempData);
 }
