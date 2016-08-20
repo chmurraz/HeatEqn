@@ -17,7 +17,7 @@ void InputPrompter(HeatData *myData)
 	*/
 
 	myData->M = 5;
-	myData->n = 10;
+	myData->n = 50;
 	myData->L = 5;
 	myData->k = 0.1;
 	myData->alpha = 0.1;
