@@ -29,44 +29,46 @@ int main()
 	//	Calculate the determinant of the tridiagonal matrix
 	//long double det = Determinant(myData.A,myData.A->n);
 
+	Matrix *test = MatrixAlloc(3);
+	Matrix *test2 = MatrixAlloc(3);
+	test->rows[0][0] = 1;
+	test->rows[0][1] = 4;
+	test->rows[0][2] = -2;
+	test->rows[1][0] = -1;
+	test->rows[1][1] = 1;
+	test->rows[1][2] = -1;
+	test->rows[2][0] = 3;
+	test->rows[2][2] = 1;
+
+	long double *test3 = (long double *)malloc((3) * sizeof(long double));
+	test3[0] = 1;
+	test3[1] = 2;
+	test3[2] = 5;
+
+	//MatrixVectorProduct(test, test3);
+
+	PrintMatrix(test);
+	Invert(test, test2);
+	PrintMatrix(test2);
+
+	MatrixFree(test);
+	MatrixFree(test2);
+
 	//	Calculate the inverse of the matrix A
-	Invert(myData.A, myData.Ainv, myData.A->n);
+	Invert(myData.A, myData.Ainv);
+	PrintMatrix(myData.A);
+	PrintMatrix(myData.Ainv);
+
+	MatrixProduct(myData.Ainv, myData.A, myData.AinvB);
+	PrintMatrix(myData.AinvB);
 
 	//	Calculate the product of Ainv and B
 	MatrixProduct(myData.Ainv, myData.B, myData.AinvB);
 
-	//printf("\n");
-	//PrintMatrix(myData.Ainv);
-
-	//printf("\n");
-	//PrintMatrix(myData.AinvB);
 
 	//	Iteratively multiply the temp condition by the matrix product
+	WriteToFile(&myData);
 
-	//	Write temp data to a file
-	FILE *pFile;
-
-	pFile = fopen("test.txt", "w");
-
-	if (pFile != NULL)
-	{
-		for (int i = 0; i < myData.n + 2; i++)
-		{
-			fprintf(pFile, "%lf", myData.xAxis[i]);
-			if (i < myData.n + 1)
-				fprintf(pFile, ", ");
-		}
-
-		fprintf(pFile, "\n");
-
-		for (int i = 0; i < myData.n + 2; i++)
-		{
-			fprintf(pFile, "%lf", myData.yAxisTempData[i]);
-			if (i < myData.n + 1)
-				fprintf(pFile, ", ");
-		}
-		fclose(pFile);
-	}
 
 	//	Clean up the garbage
 	GarbageCollect(&myData);

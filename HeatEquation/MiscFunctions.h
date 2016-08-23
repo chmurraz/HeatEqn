@@ -23,4 +23,5 @@ void InputPrompter(HeatData *myData);
 //long double** MatrixOfCofactors(long double** inputMatrix, int n);
 //long double Determinant(long double** inputMatrix, int n);
 void GarbageCollect(HeatData *myData);
+void WriteToFile(HeatData *myData);
 #endif

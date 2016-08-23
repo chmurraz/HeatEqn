@@ -20,7 +20,7 @@ void InputPrompter(HeatData *myData)
 	myData->n = 50;
 	myData->L = 5;
 	myData->k = 0.1;
-	myData->alpha = 0.1;
+	myData->alpha = 0.001;
 
 	//	Now use the user inputs to create the derived parameters
 	//	NOTE:  n tracks the number of internal mesh points (not including x0 and xn)
@@ -176,4 +176,51 @@ void GarbageCollect(HeatData *myData)
 	MatrixFree(myData->B);
 	free(myData->xAxis);
 	free(myData->yAxisTempData);
+}
+
+void WriteToFile(HeatData * myData)
+{
+	//	Write temp data to a file
+	FILE *pFile;
+
+	pFile = fopen("test.txt", "w");
+
+	if (pFile != NULL)
+	{
+		for (int i = 0; i < myData->n + 2; i++)
+		{
+			fprintf(pFile, "%lf", myData->xAxis[i]);
+			if (i < myData->n + 1)
+				fprintf(pFile, ", ");
+		}
+		fprintf(pFile, "\n");
+
+
+		for (int i = 0; i < myData->n + 2; i++)
+		{
+			fprintf(pFile, "%lf", myData->yAxisTempData[i]);
+			if (i < myData->n + 1)
+				fprintf(pFile, ", ");
+		}
+		fprintf(pFile, "\n");
+
+		//	Multiply the heat transfer matrix by the temperature values
+		for (int i = 1; i <= myData->M; i++)
+		{
+			//	Update the temp data
+			MatrixVectorProduct(myData->AinvB, myData->yAxisTempData);
+
+			//	Write to file
+			for (int j = 0; j < myData->n + 2; j++)
+			{
+				fprintf(pFile, "%lf", myData->yAxisTempData[j]);
+				if (j < myData->n + 1)
+					fprintf(pFile, ", ");
+			}
+			fprintf(pFile, "\n");
+		}
+
+		fclose(pFile);
+	}
+
 }

@@ -65,8 +65,7 @@ void PrintMatrix(Matrix * m)
 			if (count % (m->n) == 0)
 				printf("\n");
 		}
-
-
+	printf("\n");
 }
 
 long double Determinant(Matrix * m, int n)
@@ -97,45 +96,73 @@ long double Determinant(Matrix * m, int n)
 	}
 }
 
-void Invert(Matrix *m, Matrix *T, int n)
+void Invert(Matrix *m, Matrix *T)
 {
-	for (int i = 1; i <= n; i++)
-		for (int j = 1; j <= n; j++)
+	int n = m->n;
+
+	//	Step 0:  Create a temporary matrix that is a copy of the original matrix m
+	Matrix *temp = MatrixAlloc(n);
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			temp->rows[i][j] = m->rows[i][j];
+
+	//	Step 1:  Populate the target matrix with an identy matrix
+	for (int i = 0; i < n; i++)
+		T->rows[i][i] = 1.0;
+
+	//	Step 2:  Starting with the [0][0] entry as the pivot, zero out the lower triangle
+	long double scale;
+	long double scale2;
+	for (int i = 0; i < n; i++)
+	{
+		scale = temp->rows[i][i];
+		for (int j = 0; j < n; j++)
 		{
-			if (i < j)
-			{
-				T->rows[i-1][j-1] = (pow(-1, i+j));
-
-				//	Multiply this by the product of the b's (the superior diagonal where bi = m[i-1][i])
-				for (int b = i; b <= j - 1; b++)
-				{
-					T->rows[i-1][j-1] *= m->rows[b-1][b];
-				}
-
-				//	Multiply this by the theta and phi
-				T->rows[i-1][j-1] *= Theta(m,i-1)*Phi(m,j+1)/Theta(m,n);				
-			}
-			if (i == j)
-			{
-				T->rows[i-1][j-1] = 1;
-				T->rows[i-1][j-1] *= Theta(m, i - 1);
-				T->rows[i-1][j-1] *= Phi(m, j + 1);
-				T->rows[i-1][j-1] *= 1 / Theta(m, n);
-			}
-			if (i > j)
-			{
-				T->rows[i-1][j-1] = (pow(-1, i + j));
-
-				//	Multiply this by the product of the c's (the inferior diagonal where cj = m[i][i-1])
-				for (int c = j; c <= i - 1; c++)
-				{
-					T->rows[i-1][j-1] *= m->rows[c][c - 1];
-				}
-
-				//	Multiply this by the theta and phi
-				T->rows[i-1][j-1] *= Theta(m, j - 1)*Phi(m, i + 1) / Theta(m, n);
-			}
+			temp->rows[i][j] *= 1 / scale;
+			T->rows[i][j] *= 1 / scale;
 		}
+
+		//	Next, do row operations as long as we're not on the last row
+		for (int i2 = i + 1; i2 < n; i2++)
+		{
+			//	If the leading entry in this row is not zero, eliminate it
+			if (temp->rows[i2][i] != 0.0)
+			{
+				scale2 = temp->rows[i2][i];
+				for (int j = 0; j < n; j++)
+				{
+					temp->rows[i2][j] -= scale2 * temp->rows[i][j];
+					T->rows[i2][j] -= scale2 * T->rows[i][j];
+				}
+			}
+
+		}		
+	}
+
+	//	At this point, the matrix should be upper triangular with 1s on the diagonals.
+
+	//	Step 3:  Starting with the [n-1][n-1] entry as the pivot, zero out the upper triangle
+	for (int i = n-1; i >= 0; i--)
+	{
+
+		//	Next, do row operations as long as we're not on the last row
+		for (int i2 = i - 1; i2 >= 0; i2--)
+		{
+			//	If the leading entry in this row is not zero, eliminate it
+			if (temp->rows[i2][i] != 0.0)
+			{
+				scale2 = temp->rows[i2][i];
+				for (int j = 0; j < n; j++)
+				{
+					temp->rows[i2][j] -= scale2 * temp->rows[i][j];
+					T->rows[i2][j] -= scale2 * T->rows[i][j];
+				}
+			}
+
+		}
+	}
+
+	MatrixFree(temp);
 }
 
 long double Theta(Matrix * m, int n)
@@ -199,4 +226,25 @@ void MatrixProduct(Matrix * a, Matrix * b, Matrix *T)
 			for (int x = 0; x < n; x++)
 					T->rows[i][j] += a->rows[i][x] * b->rows[x][j];
 		}
+}
+
+void MatrixVectorProduct(Matrix * a, long double * v)
+{
+	int n = a->n;
+
+	//	Allocate a temporary array
+	long double *temp = (long double *)malloc(n * sizeof(long double));
+	for (int i = 0; i < n; i++)
+		temp[i] = 0;
+
+	for(int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+		{
+			temp[i] += a->rows[i][j] * v[j];
+		}
+
+	for (int i = 0; i < n; i++)
+		v[i] = temp[i];
+	free(temp);
+
 }
