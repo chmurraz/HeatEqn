@@ -7,9 +7,9 @@
 
 typedef struct
 {
-	int n;
-	long double **rows;
-	long double *cols;
+	int n;					//	Dimension 'n' of the matrix
+	long double **rows;		//	Pointer to the rows of the matrix
+	long double *cols;		//	Pointer to the column of the matrix
 } Matrix;
 
 Matrix* MatrixAlloc(int n);
@@ -19,8 +19,6 @@ void BuildTriDiag(Matrix *m, long double inferior, long double main, long double
 void PrintMatrix(Matrix *m);
 long double Determinant(Matrix *m, int n);
 void Invert(Matrix *m, Matrix *T);
-long double Theta(Matrix *m, int n);
-long double Phi(Matrix *m, int n);
 void MatrixProduct(Matrix *a, Matrix *b, Matrix *T);
 void MatrixVectorProduct(Matrix *a, long double *v);
 

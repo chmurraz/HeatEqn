@@ -1,5 +1,6 @@
 #include "MatrixFunctions.h"
 
+//	This function allocates memory for a Matrix struct and populates it with zeros
 Matrix * MatrixAlloc(int n)
 {
 	//	Allocate the matrix memory
@@ -28,6 +29,7 @@ Matrix * MatrixAlloc(int n)
 	return m;
 }
 
+//	This function frees the memory
 void MatrixFree(Matrix * m)
 {
 	free(m->rows);
@@ -35,6 +37,7 @@ void MatrixFree(Matrix * m)
 	free(m);
 }
 
+//	This function builds a tridiagonal matrix.  It fills the main diagonal with main, inferior diagonal with inferior, etc.
 void BuildTriDiag(Matrix * m, long double inferior, long double main, long double superior)
 {
 	//	Set the matrix values to zero
@@ -54,6 +57,7 @@ void BuildTriDiag(Matrix * m, long double inferior, long double main, long doubl
 	}
 }
 
+//	This function prints a matrix to the console for debugging
 void PrintMatrix(Matrix * m)
 {
 	int count = 0;
@@ -68,6 +72,7 @@ void PrintMatrix(Matrix * m)
 	printf("\n");
 }
 
+//	This function returns the determinant of a matrix.  It is recursive and VERY inefficient.
 long double Determinant(Matrix * m, int n)
 {
 	//	NOTE:  This algorithm is expecting n to be the mathematical size of the matrix
@@ -96,6 +101,7 @@ long double Determinant(Matrix * m, int n)
 	}
 }
 
+//	This function inverts a matrix using Gauss-Jordan row reduction
 void Invert(Matrix *m, Matrix *T)
 {
 	int n = m->n;
@@ -142,7 +148,7 @@ void Invert(Matrix *m, Matrix *T)
 	//	At this point, the matrix should be upper triangular with 1s on the diagonals.
 
 	//	Step 3:  Starting with the [n-1][n-1] entry as the pivot, zero out the upper triangle
-	for (int i = n-1; i >= 0; i--)
+	for (int i = n - 1; i >= 0; i--)
 	{
 
 		//	Next, do row operations as long as we're not on the last row
@@ -158,65 +164,12 @@ void Invert(Matrix *m, Matrix *T)
 					T->rows[i2][j] -= scale2 * T->rows[i][j];
 				}
 			}
-
 		}
 	}
-
 	MatrixFree(temp);
 }
 
-long double Theta(Matrix * m, int n)
-{
-	if (n == 0)
-		return 1;
-	if (n == 1)
-		return m->rows[0][0];
-	else
-	{
-		//	Extract the diagonal element
-		long double aN = m->rows[n - 1][n - 1];
-
-		//	Extract the superior and inferior diagonals only if n>=2
-		//	Otherwise, set them to one.  They are not needed since theta0 = 1
-		long double bN = 1;
-		long double cN = 1;
-		if (n >= 2)
-		{
-			bN = m->rows[n - 2][n - 1];
-			cN = m->rows[n - 1][n - 2];
-		}
-
-		return aN * Theta(m, n - 1) - cN*aN*Theta(m, n - 2);
-
-	}
-}
-
-long double Phi(Matrix * m, int n)
-{
-	if (n == m->n+1)
-		return 1;
-	if (n == m->n)
-		return m->rows[n-1][n-1];
-	else
-	{
-		//	Extract the diagonal element
-		long double aN = m->rows[n - 1][n - 1];
-
-		//	Extract the superior and inferior diagonals only if n < the size of the matrix
-		//	Otherwise, set them to one.  They are not needed since phi(N+1) = 1
-		long double bN = 1;
-		long double cN = 1;
-		if (n < m->n)
-		{
-			bN = m->rows[n - 1][n];
-			cN = m->rows[n][n - 1];
-		}
-
-		return aN * Phi(m, n + 1) - cN*aN*Phi(m, n + 2);
-
-	}
-}
-
+//	This function calculates the product of two matrices a and b and stores the result in target T
 void MatrixProduct(Matrix * a, Matrix * b, Matrix *T)
 {
 	int n = a->n;
@@ -228,6 +181,7 @@ void MatrixProduct(Matrix * a, Matrix * b, Matrix *T)
 		}
 }
 
+//	This function stores the product of a matrix a with a vector v and OVERWRITES the original vector v
 void MatrixVectorProduct(Matrix * a, long double * v)
 {
 	int n = a->n;
@@ -246,5 +200,4 @@ void MatrixVectorProduct(Matrix * a, long double * v)
 	for (int i = 0; i < n; i++)
 		v[i] = temp[i];
 	free(temp);
-
 }

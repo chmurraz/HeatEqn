@@ -2,74 +2,47 @@
 #include <string.h>
 #include "MiscFunctions.h"
 
+/*
+	THIS PROGRAM CALCULATES SOLUTIONS TO THE ONE DIMENSIONAL HEAT CONDUCTION EQUATION
+	WITH DIRICHLET BOUNDARY CONDITIONS USING THE CRANK NICOLSON NUMERICAL METHOD
+
+	THE USER IS PROMPTED FOR INPUTS:
+		M:		The number of time steps
+		n:		The number of internal spacial mesh points (not counting the end points of the rod)
+		k:		The time step
+		L:		The rod length
+		alpha:	The thermal diffusivity
+
+	DATA IS WRITTEN TO A TEXT FILE (HEATDATA.TXT) IN COMMA DELIMITED FORMAT
+
+	THE FIRST ROW IS THE X-AXIS DATA
+	THE SECOND ROW IS THE INITIAL TEMPERATURE DISTRIBUTION (AT TIME T = 0)
+	THE NEXT ROWS ARE THE TEMPERATURE DISTRIBUTION (AT TIMES T = X * M WHERE X = 0.1, 0.2, ... 0.9, 1.0)
+
+	NOTE:  TO CHANGE THE INITIAL TEMPERATURE DISTRIBUTION, EDIT THE FUNCTION 'InitialTemp' located in 'MiscFunctions.c'
+*/
+
 int main()
 {
 	HeatData myData;
 
-	//puts("I have not currently implemented the linear algebra routines.");
-	//puts("I have functions declared to computer minors, cofactors and determinants of the nxn matrix but they are not yet implemented.");
-	//puts("More work is needed before this code really does anything beyond prompt for inputs.\n");
-
 	//	Prompt the user for inputs and allocate memory for matrices
 	InputPrompter(&myData);
 
-	//	Build the tridiagonal matrix
+	//	Build the tridiagonal matrices used to solve for the temperature at each time step
 	long double s = myData.s;
-	BuildTriDiag(myData.A, -1 * s, 2 + 2*s, -s);
+	BuildTriDiag(myData.A, -1 * s, 2 + 2*s, -1 * s);
 	BuildTriDiag(myData.B, s, 2 - 2 * s, s);
-
-	//	Print stuff
-	//if (myData.printFlag == 1)
-	//{
-	//	PrintMatrix(myData.A);
-	//	printf("\n");
-	//	PrintMatrix(myData.B);
-	//}
-	
-	//	Calculate the determinant of the tridiagonal matrix
-	//long double det = Determinant(myData.A,myData.A->n);
-
-	Matrix *test = MatrixAlloc(3);
-	Matrix *test2 = MatrixAlloc(3);
-	test->rows[0][0] = 1;
-	test->rows[0][1] = 4;
-	test->rows[0][2] = -2;
-	test->rows[1][0] = -1;
-	test->rows[1][1] = 1;
-	test->rows[1][2] = -1;
-	test->rows[2][0] = 3;
-	test->rows[2][2] = 1;
-
-	long double *test3 = (long double *)malloc((3) * sizeof(long double));
-	test3[0] = 1;
-	test3[1] = 2;
-	test3[2] = 5;
-
-	//MatrixVectorProduct(test, test3);
-
-	PrintMatrix(test);
-	Invert(test, test2);
-	PrintMatrix(test2);
-
-	MatrixFree(test);
-	MatrixFree(test2);
 
 	//	Calculate the inverse of the matrix A
 	Invert(myData.A, myData.Ainv);
-	PrintMatrix(myData.A);
-	PrintMatrix(myData.Ainv);
-
-	MatrixProduct(myData.Ainv, myData.A, myData.AinvB);
-	PrintMatrix(myData.AinvB);
 
 	//	Calculate the product of Ainv and B
 	MatrixProduct(myData.Ainv, myData.B, myData.AinvB);
 
-
-	//	Iteratively multiply the temp condition by the matrix product
+	//	Iteratively multiply the temp condition by the matrix product and write the data to a file
 	WriteToFile(&myData);
-
-
+	
 	//	Clean up the garbage
 	GarbageCollect(&myData);
 	return 0;

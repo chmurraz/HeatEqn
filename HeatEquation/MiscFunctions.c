@@ -1,6 +1,19 @@
 #include "MiscFunctions.h"
 
+//	This function returns the intitial temperature data
+long double InitialTemp(long double x, HeatData * myData)
+{
+	return 50 * x * sin(2 * PI*x / myData->L) + 50;
+}
 
+//	This function holds the boundary conditions constant to whatever they were intially, based on the initial temperature distribution
+void BoundaryConditions(HeatData * myData)
+{
+	myData->yAxisTempData[0] = InitialTemp(0, myData);
+	myData->yAxisTempData[myData->n] = InitialTemp(myData->n, myData);
+}
+
+//	This function prompts the user for physical parameters such as length of the rod, time steps, space steps, and thermal diffusivity
 void InputPrompter(HeatData *myData)
 {
 	/*
@@ -16,10 +29,10 @@ void InputPrompter(HeatData *myData)
 	scanf_s("%lf", &(myData->alpha));
 	*/
 
-	myData->M = 5;
+	myData->M = 40000;
 	myData->n = 50;
 	myData->L = 5;
-	myData->k = 0.1;
+	myData->k = 0.125;
 	myData->alpha = 0.001;
 
 	//	Now use the user inputs to create the derived parameters
@@ -38,137 +51,19 @@ void InputPrompter(HeatData *myData)
 	myData->xAxis = (long double *)malloc((myData->n + 2) * sizeof(long double));
 	myData->yAxisTempData = (long double *)malloc((myData->n + 2) * sizeof(long double));
 
-	//	Populate the x- and y-axis data
+	//	Populate the x-axis mesh point data and the INITIAL y-axis data
 	for (int i = 0; i < myData->n + 2; i++)
 	{
 		long double x = i*myData->h;
 		myData->xAxis[i] = x;
-		myData->yAxisTempData[i] = 50 * x*sin(2 * PI*x / myData->L) + 15;
+		myData->yAxisTempData[i] = InitialTemp(x,myData);
 	}
-
 
 	//	Set matrix print flag to 1 (true) by default
 	myData->printFlag = 1;
 }
 
-/*
-
-long double** InvertMatrix(long double** inputMatrix)
-{
-
-	return NULL;
-}
-
-long double ** MatrixOfMinors(long double** inputMatrix, int n)
-{
-	return NULL;
-}
-
-long double ** MatrixOfCofactors(long double ** inputMatrix, int n)
-{
-	return NULL;
-}
-
-long double Determinant(long double** inputMatrix, int n)
-{
-	int i,j,k;
-
-	//	STEP 1:	Search the matrix for the row or column with the largest number of zeros in it
-	//			Assume the 0th row is the maximum to begin with
-
-	int maxZeroLocation = 0;
-	int maxZeroCount = 0;
-	int zeroCount;
-	for (i = 0; i < n + 1; i++)
-	{
-		//	Count the zeros in the ith row
-		zeroCount = 0;
-		for (j = 0; i < n + 1; j++)
-		{
-			if (inputMatrix[i][j] == 0)
-				zeroCount++;
-		}
-		//	Update the max and store row location, if applicable
-		if (zeroCount > maxZeroCount)
-		{
-			maxZeroCount = zeroCount;
-			maxZeroLocation = i;
-		}
-			
-
-		//	Count the zeros in the ith column
-		zeroCount = 0;
-		for (j = 0; j < n + 1; j++)
-		{
-			if (inputMatrix[j][i] == 0)
-				zeroCount++;
-		}
-		//	Update the max and store col location, if applicable
-		if (zeroCount > maxZeroCount)
-		{
-			maxZeroCount = zeroCount;
-			maxZeroLocation = -1*i;
-		}
-	}
-
-	//	CONCLUSION STEP 1:
-	//	If maxZeroLocation is +x then the xth row has the most zeros
-	//	If maxZeroLocation is -x then the xth col has the most zeros
-	//	If there are no zeros in the matrix, then the 0th row will be used by default.
-
-	//	STEP 2:  Expand the determinant (recursively) about this optimal row/column
-
-
-
-
-
-	//	Allocate memory for pointer variables to store the cofactor and minor matrices for the input matrix
-	long double **minor = (long double **)malloc((n + 1) * sizeof(long double*));
-	long double *cofactor = (long double **)malloc(n * sizeof(long double));
-	for (i = 0; i <= n+1; i++)
-	{
-		minor[i] = (long double **)malloc(n * sizeof(long double));
-	}
-
-	//	Loop through and initialize the cofactor and matrix minors
-	for (i = 0; i <= n + 1; i++)
-	{
-		cofactor[i] = ((-1) ^ i)*inputMatrix[0][i];
-		for (j = 0; j <= n; j++)
-			for (k = 0; k <= n; k++)
-			{
-				if (k < i)
-					minor[j][k] = inputMatrix[i + 1][k];
-				if (k > i)
-					minor[j][k] = inputMatrix[i + 1][k+1];
-			}
-	}
-
-	//	Free the memory
-	for (i = 0; i <= n + 1; i++)
-	{
-		free(minor[i]);
-	}
-	free(minor);
-	free(cofactor);
-
-
-
-
-	//	Allocate memory for an (n) x (n) matrix composed of all elements of the original matrix
-	//	except for the first row and ith column.  Note this matrix dimension is
-	//	one less than the original matrix (n+1) x (n+1).  This is the minor matrix
-
-	//	If n-2 = 2, compute the determinant of the minor matrix via formula.
-	//	If n-2 > 2, compute the determinant of the minor matrix recursively
-
-	//	Multiply the cofactor by the determinant of the minor matrix and sum the results.
-
-	return 0.0;
-}
-
-*/
-
+//	This function cleans up all memory allocations
 void GarbageCollect(HeatData *myData)
 {
 	MatrixFree(myData->A);
@@ -178,15 +73,17 @@ void GarbageCollect(HeatData *myData)
 	free(myData->yAxisTempData);
 }
 
+//	This function writes data to a file
 void WriteToFile(HeatData * myData)
 {
 	//	Write temp data to a file
 	FILE *pFile;
 
-	pFile = fopen("test.txt", "w");
+	pFile = fopen("heatdata.txt", "w");
 
 	if (pFile != NULL)
 	{
+		//	Write the x-axis data
 		for (int i = 0; i < myData->n + 2; i++)
 		{
 			fprintf(pFile, "%lf", myData->xAxis[i]);
@@ -195,7 +92,7 @@ void WriteToFile(HeatData * myData)
 		}
 		fprintf(pFile, "\n");
 
-
+		//	Write the initial temperature data
 		for (int i = 0; i < myData->n + 2; i++)
 		{
 			fprintf(pFile, "%lf", myData->yAxisTempData[i]);
@@ -204,23 +101,27 @@ void WriteToFile(HeatData * myData)
 		}
 		fprintf(pFile, "\n");
 
-		//	Multiply the heat transfer matrix by the temperature values
+		//	Iterate temperature data to new time step
 		for (int i = 1; i <= myData->M; i++)
 		{
 			//	Update the temp data
 			MatrixVectorProduct(myData->AinvB, myData->yAxisTempData);
 
-			//	Write to file
-			for (int j = 0; j < myData->n + 2; j++)
-			{
-				fprintf(pFile, "%lf", myData->yAxisTempData[j]);
-				if (j < myData->n + 1)
-					fprintf(pFile, ", ");
-			}
-			fprintf(pFile, "\n");
-		}
+			//	Re-assert the boundary conditions
+			BoundaryConditions(myData);
 
+			//	Write to file... but only if at 10% intervals
+			if (i % (int)(0.1*myData->M) == 1)
+			{
+				for (int j = 0; j < myData->n + 2; j++)
+				{
+					fprintf(pFile, "%lf", myData->yAxisTempData[j]);
+					if (j < myData->n + 1)
+						fprintf(pFile, ", ");
+				}
+				fprintf(pFile, "\n");
+			}
+		}
 		fclose(pFile);
 	}
-
 }
