@@ -21,9 +21,15 @@
     <ClCompile Include="MiscFunctions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MatrixFunctions.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MiscFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

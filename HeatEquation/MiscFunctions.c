@@ -1,9 +1,22 @@
 #include "MiscFunctions.h"
-#include <stdio.h>
-#include <math.h>
 
+//	This function returns the intitial temperature data
+long double InitialTemp(long double x, HeatData * myData)
+{
+	return 50 * x * sin(2 * PI*x / myData->L) + 50;
+}
+
+//	This function holds the boundary conditions constant to whatever they were intially, based on the initial temperature distribution
+void BoundaryConditions(HeatData * myData)
+{
+	myData->yAxisTempData[0] = InitialTemp(0, myData);
+	myData->yAxisTempData[myData->n] = InitialTemp(myData->n, myData);
+}
+
+//	This function prompts the user for physical parameters such as length of the rod, time steps, space steps, and thermal diffusivity
 void InputPrompter(HeatData *myData)
 {
+	/*
 	printf_s("Enter 'M' the number of time steps\n");
 	scanf_s("%d", &(myData->M));
 	printf("Enter 'n' the number of internal spacial mesh points.\nNote, the code will use (n+2) mesh points.\nThis includes the n internal mesh points and two additional boundary points: x0 and xn.\n");
@@ -14,150 +27,101 @@ void InputPrompter(HeatData *myData)
 	scanf_s("%lf", &(myData->L));
 	printf("Enter 'alpha' the thermal diffusivity.");
 	scanf_s("%lf", &(myData->alpha));
+	*/
+
+	myData->M = 40000;
+	myData->n = 50;
+	myData->L = 5;
+	myData->k = 0.125;
+	myData->alpha = 0.001;
 
 	//	Now use the user inputs to create the derived parameters
-	myData->h = myData->L / (myData->n + 2);
+	//	NOTE:  n tracks the number of internal mesh points (not including x0 and xn)
+	//	so the value of h is calculated on (n+1) and not n or (n+2)
+	myData->h = myData->L / (myData->n + 1);
 	myData->s = myData->k*myData->alpha / (pow(myData->h, 2));
 
-	//	Allocate memory for the dynamic variables
-	myData->matrixA = (double **)malloc((myData->n + 2) * sizeof(double*));
-	myData->matrixB = (double **)malloc((myData->n + 2) * sizeof(double*));
-	myData->xAxis = (double *)malloc((myData->n + 2) * sizeof(double));
-	myData->yAxisTempData = (double *)malloc((myData->n + 2) * sizeof(double));
+	//	Allocate memory for the dynamic variables.
+	//	NOTE:  If there are n internal mesh points, then there are a system of
+	//	(n+2) equations, requring an (n+2) matrix.
+	myData->A = MatrixAlloc(myData->n+2);
+	myData->Ainv = MatrixAlloc(myData->n + 2);
+	myData->B = MatrixAlloc(myData->n+2);
+	myData->AinvB = MatrixAlloc(myData->n + 2);
+	myData->xAxis = (long double *)malloc((myData->n + 2) * sizeof(long double));
+	myData->yAxisTempData = (long double *)malloc((myData->n + 2) * sizeof(long double));
+
+	//	Populate the x-axis mesh point data and the INITIAL y-axis data
+	for (int i = 0; i < myData->n + 2; i++)
+	{
+		long double x = i*myData->h;
+		myData->xAxis[i] = x;
+		myData->yAxisTempData[i] = InitialTemp(x,myData);
+	}
 
 	//	Set matrix print flag to 1 (true) by default
 	myData->printFlag = 1;
 }
 
-int MallocMatrix(HeatData *myData)
+//	This function cleans up all memory allocations
+void GarbageCollect(HeatData *myData)
 {
-	int i, j;
-	double pi = 3.14159;
-	for (i = 0; i < myData->n + 2; i++)
-	{
-		myData->matrixA[i] = (double *)malloc((myData->n + 2) * sizeof(double));
-		myData->matrixB[i] = (double *)malloc((myData->n + 2) * sizeof(double));
-		myData->xAxis[i] = myData->h*i;
-		myData->yAxisTempData[i] = 50 * myData->h*i * sin(2 * pi*myData->h*i / myData->L) + 15;
-	}
-
-	if (myData->matrixA == NULL || myData->matrixB == NULL || myData->xAxis == NULL || myData->yAxisTempData == NULL)
-	{
-		puts("Memory allocation error");
-		return 0;
-	}
-	return 1;
+	MatrixFree(myData->A);
+	MatrixFree(myData->Ainv);
+	MatrixFree(myData->B);
+	free(myData->xAxis);
+	free(myData->yAxisTempData);
 }
 
-void BuildTriDiag(HeatData *myData)
+//	This function writes data to a file
+void WriteToFile(HeatData * myData)
 {
-	//	Fill the matrix with zeros
-	int i, j, count;
-	for (i = 0; i < myData->n + 2; i++)
-		for (j = 0; j < myData->n + 2; j++)
+	//	Write temp data to a file
+	FILE *pFile;
+
+	pFile = fopen("heatdata.txt", "w");
+
+	if (pFile != NULL)
+	{
+		//	Write the x-axis data
+		for (int i = 0; i < myData->n + 2; i++)
 		{
-			myData->matrixA[i][j] = 0;
-			myData->matrixB[i][j] = 0;
+			fprintf(pFile, "%lf", myData->xAxis[i]);
+			if (i < myData->n + 1)
+				fprintf(pFile, ", ");
 		}
-			
+		fprintf(pFile, "\n");
 
-	//	Fill the diagonal and off diagonals
-	for (i = 0; i < myData->n + 2; i++)
-	{
-		for (j = 0; j < myData->n + 2; j++)
+		//	Write the initial temperature data
+		for (int i = 0; i < myData->n + 2; i++)
 		{
-			if (i == j)
-			{
-				myData->matrixA[i][j] = 2+2 * myData->s;
-				myData->matrixB[i][j] = 2-2 * myData->s;
-			}
-				
-			if ((j == (i - 1)) || (j == (i + 1)))
-			{
-				myData->matrixA[i][j] = -1 * myData->s;
-				myData->matrixB[i][j] = myData->s;
-			}
-				
+			fprintf(pFile, "%lf", myData->yAxisTempData[i]);
+			if (i < myData->n + 1)
+				fprintf(pFile, ", ");
 		}
-	}
+		fprintf(pFile, "\n");
 
-	//	Print the contents of the matrix to the console if flag == 1
-	if (myData->printFlag == 1)
-	{
-		count = 0;
-		puts("\nMatrixA:\n");
-		for (i = 0; i < myData->n + 2; i++)
-			for (j = 0; j < myData->n + 2; j++)
+		//	Iterate temperature data to new time step
+		for (int i = 1; i <= myData->M; i++)
+		{
+			//	Update the temp data
+			MatrixVectorProduct(myData->AinvB, myData->yAxisTempData);
+
+			//	Re-assert the boundary conditions
+			BoundaryConditions(myData);
+
+			//	Write to file... but only if at 10% intervals
+			if (i % (int)(0.1*myData->M) == 1)
 			{
-				count++;
-				printf("%lf  ", myData->matrixA[i][j]);
-				if (count % (myData->n + 2) == 0)
-					printf("\n");
+				for (int j = 0; j < myData->n + 2; j++)
+				{
+					fprintf(pFile, "%lf", myData->yAxisTempData[j]);
+					if (j < myData->n + 1)
+						fprintf(pFile, ", ");
+				}
+				fprintf(pFile, "\n");
 			}
-
-		count = 0;
-		puts("\nMatrixB:\n");
-		for (i = 0; i < myData->n + 2; i++)
-			for (j = 0; j < myData->n + 2; j++)
-			{
-				count++;
-				printf("%lf  ", myData->matrixB[i][j]);
-				if (count % (myData->n + 2) == 0)
-					printf("\n");
-			}
+		}
+		fclose(pFile);
 	}
-}
-
-double** InvertMatrix(double** inputMatrix)
-{
-
-	return NULL;
-}
-
-double ** MatrixOfMinors(double** inputMatrix, int n)
-{
-	return NULL;
-}
-
-double ** MatrixOfCofactors(double ** inputMatrix, int n)
-{
-	return NULL;
-}
-
-double Determinant(double** inputMatrix, int n)
-{
-	//	This is recursive definition of the determinant SPECIFICALLY
-	//	for tridiagonal matrices
-
-	if (n == 0)
-		return 1.0;
-	if (n == -1)
-		return 0.0;
-	else
-	{
-		//	The formula is fN = aN*f(N-1) - c(N-1)*b(N-1)*f(N-2)
-		//	where a is the main diagonal
-		//	where b is the superior off diagonal
-		//	where c is the inferior off diagonal
-		//	and the terminal recursion relation is f(0) = 1 and f(-1) = 0
-
-		double termOne = Determinant(inputMatrix, n - 1) * inputMatrix[n][n];
-		double termTwo = -1 * inputMatrix[n][n - 1] * inputMatrix[n - 1][n] * Determinant(inputMatrix, n - 2);
-		return  termOne + termTwo;
-	}
-	return 0.0;
-}
-
-void GarbageCollect(HeatData myData)
-{
-	int i;
-	for (i = 0; i < myData.n + 2; i++)
-	{
-		free(myData.matrixA[i]);
-		free(myData.matrixB[i]);
-	}
-	free(myData.matrixA);
-	free(myData.matrixB);
-	free(myData.xAxis);
-	free(myData.yAxisTempData);
 }
