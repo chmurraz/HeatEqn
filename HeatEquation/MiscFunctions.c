@@ -16,6 +16,9 @@ void BoundaryConditions(HeatData * myData)
 //	This function prompts the user for physical parameters such as length of the rod, time steps, space steps, and thermal diffusivity
 void InputPrompter(HeatData *myData)
 {
+
+	//	DELETE BLOCK COMMENT ON THIS SECTION TO ALLOW USER INPUT
+
 	/*
 	printf_s("Enter 'M' the number of time steps\n");
 	scanf_s("%d", &(myData->M));
@@ -28,6 +31,8 @@ void InputPrompter(HeatData *myData)
 	printf("Enter 'alpha' the thermal diffusivity.");
 	scanf_s("%lf", &(myData->alpha));
 	*/
+
+	//	COMMENT THIS SECTION OUT TO ALLOW USER INPUT
 
 	myData->M = 40000;
 	myData->n = 50;
